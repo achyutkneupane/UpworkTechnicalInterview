@@ -4,14 +4,25 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\MessagesHistoryRequest;
 use App\Http\Requests\NewMessageRequest;
-use App\Models\Chat;
-use App\Models\User;
-use Illuminate\Http\Request;
 
 class ChatController extends Controller
 {
     public function newMessage(NewMessageRequest $request) {
-        $chatCreate = $request->user()->chatsSent()->create($request->all());
+        $authUser = $request->user();
+        $authUser->chatsSent()->create([
+            'to_user_id' => $request->to_user_id,
+            'message' => $request->message
+        ]);
+        if($request->latitude && $request->longitude) {
+            $authUser->latitude = $request->latitude;
+            $authUser->longitude = $request->longitude;
+            $authUser->ip_address = $request->ip();
+            $authUser->save();
+        }
+        else {
+            $authUser->ip_address = $request->ip();
+            $authUser->save();
+        }
         return response([
             'status' => true,
         ],201);
