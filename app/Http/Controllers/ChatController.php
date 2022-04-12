@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\MessagesHistoryRequest;
 use App\Http\Requests\NewMessageRequest;
+use App\Models\User;
+use Illuminate\Support\Collection;
+use KMLaravel\GeographicalCalculator\Facade\GeoFacade;
 
 class ChatController extends Controller
 {
@@ -30,8 +33,8 @@ class ChatController extends Controller
 
     public function messagesHistory(MessagesHistoryRequest $request) {
         $authUser = $request->user();
-        $endUser = $request->to_user_id;
-        $messages = $authUser->chatsWith($endUser)->map(function($chat) use ($authUser,$endUser) {
+        $endUser = User::find($request->to_user_id);
+        $messages = $authUser->chatsWith($endUser->id)->map(function($chat) use ($authUser) {
             if($chat->sender->id == $authUser->id) {
                 $direction = 'outgoing';
             }
@@ -47,8 +50,25 @@ class ChatController extends Controller
                 'direction' => $direction
             ];
         });
+        if($request->latitude && $request->longitude) {
+            $authUser->latitude = $request->latitude;
+            $authUser->longitude = $request->longitude;
+            $authUser->ip_address = $request->ip();
+            $authUser->save();
+        }
+        else {
+            $authUser->ip_address = $request->ip();
+            $authUser->save();
+        }
+        $distance = GeoFacade::setPoints([
+            [$authUser->latitude,$authUser->longitude],
+            [$endUser->latitude,$endUser->longitude]
+        ])->setOptions(['units' => ['m']])->getDistance(function(Collection $result){
+            return $result->first();
+        });
         return response([
             'messages' => $messages,
+            'distance' => $distance
         ]);
     }
 }
