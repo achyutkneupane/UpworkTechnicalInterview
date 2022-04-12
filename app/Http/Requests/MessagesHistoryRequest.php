@@ -26,7 +26,10 @@ class MessagesHistoryRequest extends FormRequest
     public function rules()
     {
         return [
-            'to_user_id' => 'required|exists:users,id'
+            'to_user_id' => 'required|exists:users,id',
+            'latitude' => 'nullable',
+            'longitude' => 'nullable',
+            'ip_address' => 'nullable'
         ];
     }
     protected function failedValidation(Validator $validator)
