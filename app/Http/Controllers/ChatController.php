@@ -19,11 +19,15 @@ class ChatController extends Controller
         if($request->latitude && $request->longitude) {
             $authUser->latitude = $request->latitude;
             $authUser->longitude = $request->longitude;
-            $authUser->ip_address = $request->ip();
             $authUser->save();
         }
         else {
-            $authUser->ip_address = $request->ip();
+            $ipAddress = request()->ip();
+            $locationInfo = json_decode(file_get_contents("http://geoplugin.net/json.gp?ip=".$ipAddress));
+            $latitude = $locationInfo->geoplugin_latitude;
+            $longitude = $locationInfo->geoplugin_longitude;
+            $authUser->latitude = $latitude;
+            $authUser->longitude = $longitude;
             $authUser->save();
         }
         return response([
@@ -53,11 +57,15 @@ class ChatController extends Controller
         if($request->latitude && $request->longitude) {
             $authUser->latitude = $request->latitude;
             $authUser->longitude = $request->longitude;
-            $authUser->ip_address = $request->ip();
             $authUser->save();
         }
         else {
-            $authUser->ip_address = $request->ip();
+            $ipAddress = "27.34.30.189";
+            $locationInfo = json_decode(file_get_contents("http://geoplugin.net/json.gp?ip=".$ipAddress));
+            $latitude = $locationInfo->geoplugin_latitude;
+            $longitude = $locationInfo->geoplugin_longitude;
+            $authUser->latitude = $latitude;
+            $authUser->longitude = $longitude;
             $authUser->save();
         }
         $distance = GeoFacade::setPoints([
